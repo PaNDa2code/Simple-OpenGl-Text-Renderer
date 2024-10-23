@@ -23,10 +23,10 @@ void render_text(GLuint shader_program, const char *text, float x, float y,
 
   for (const char *p = text; *p != 0; p++) {
     Character_t ch = characters[*p];
-    float xpos = x + ch.Bearing[0] * scale;
-    float ypos = y - (ch.size[1] - ch.Bearing[1]) * scale;
-    float w = ch.size[0] * scale;
-    float h = ch.size[1] * scale;
+    float xpos = x + ch.bearing.x * scale;
+    float ypos = y - (ch.size.y - ch.bearing.y) * scale;
+    float w = ch.size.x * scale;
+    float h = ch.size.y * scale;
     float vertices[6][4] = {
         {xpos, ypos + h, 0.0f, 0.0f}, {xpos, ypos, 0.0f, 1.0f},
         {xpos + w, ypos, 1.0f, 1.0f}, {xpos, ypos + h, 0.0f, 0.0f},

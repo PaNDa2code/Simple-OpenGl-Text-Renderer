@@ -24,7 +24,14 @@ GLfloat ortho_matrix[16];
 #define WINDOW_WIDTH 800
 #define WINDOW_HIGHT 450
 
+#define BUFFER_SIZE 256
+char input_buffer[BUFFER_SIZE] = {0};
+int buffer_index = 0;
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                  int mods);
+void char_callback(GLFWwindow *window, GLuint input);
 
 int main() {
   int exit_code = -1;
@@ -45,6 +52,16 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+
+  GLFWmonitor *primaryMonitor = glfwGetPrimaryMonitor();
+  const GLFWvidmode *videoMode = glfwGetVideoMode(primaryMonitor);
+
+  // Calculate the center position for the window
+  int monitorWidth = videoMode->width;
+  int monitorHeight = videoMode->height;
+  int posX = (monitorWidth - WINDOW_WIDTH) / 2;
+  int posY = (monitorHeight - WINDOW_HIGHT) / 2;
 
   window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HIGHT, "Panda Text Render",
                             NULL, NULL);
@@ -54,8 +71,13 @@ int main() {
     goto CLEANUP;
   }
 
+  // Set the window's position
+  glfwSetWindowPos(window, posX, posY);
   glfwMakeContextCurrent(window);
+
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetCharCallback(window, char_callback);
   gladLoadGL();
 
   if (FT_Init_FreeType(&lib)) {
@@ -69,7 +91,7 @@ int main() {
     goto CLEANUP;
   }
 
-  FT_Set_Pixel_Sizes(face, 0, 48);
+  FT_Set_Pixel_Sizes(face, 0, 20);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
   for (GLubyte c = 0; c < 128; c++) {
@@ -92,7 +114,8 @@ int main() {
         texture,
         {face->glyph->bitmap.width, face->glyph->bitmap.rows},
         {face->glyph->bitmap_left, face->glyph->bitmap_top},
-        face->glyph->advance.x};
+        face->glyph->advance.x,
+    };
 
     characters[c] = character;
   }
@@ -122,7 +145,7 @@ int main() {
 
   text_shader_program = TextShaderProgram();
 
-  if (!text_shader_program || !bloom_shader_program) {
+  if (!text_shader_program) {
     goto CLEANUP;
   }
 
@@ -152,16 +175,11 @@ int main() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     GLfloat color[3] = {1, 1, 1};
-    RenderFps(text_shader_program);
-    render_text(text_shader_program, "ABCDEFGHIKJLMNOPQRSTUVWXYZ", 25, 400, 0.9,
-                color);
-    render_text(text_shader_program, "abcdefghikjlmnopqrstuvwxyz", 25, 350, 0.9,
-                color);
-    render_text(text_shader_program, "1234567890!@#$%^&*(){}[]+=", 25, 300, 0.9, color);
-    render_text(text_shader_program, "_-|\\\"\'?><.,", 25, 250, 0.9, color);
-
-    render_text(text_shader_program, "I\'m BATMAN", 250, 200, 0.9, color);
-
+    ShowFps(text_shader_program);
+    render_text(text_shader_program, input_buffer, 25, 400, 0.9, color);
+    /*render_text(text_shader_program, "ABCDEFGHIKJLMNOPQRSTUVWXYZ", 25, 400, 0.9, color);*/
+    /*render_text(text_shader_program, "abcdefghikjlmnopqrstuvwxyz", 400, 400, 0.9, color);*/
+    /*render_text(text_shader_program, "1234567890!@#$%^&*(){}[]+=", 25, 300, 0.9, color);*/
     glfwSwapBuffers(window);
     glfwPollEvents();
 
@@ -199,8 +217,19 @@ CLEANUP:
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  // make sure the viewport matches the new window dimensions; note that width
-  // and height will be significantly larger than specified on retina displays.
   ortho(0.0f, width, 0.0f, height, -1.0f, 1.0f, ortho_matrix);
   glViewport(0, 0, width, height);
+}
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                  int mods) {
+  if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+    if (key == GLFW_KEY_BACKSPACE && buffer_index > 0) {
+      input_buffer[--buffer_index] = 0;
+    }
+  }
+}
+
+void char_callback(GLFWwindow *window, GLuint input) {
+  input_buffer[buffer_index++] = input;
 }

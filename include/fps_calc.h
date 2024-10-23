@@ -1,5 +1,6 @@
+#pragma once
 
 #include <GL/gl.h>
 
-void RenderFps(GLuint shader_program);
+void ShowFps(GLuint shader_program);
 void InitFpsCalc();

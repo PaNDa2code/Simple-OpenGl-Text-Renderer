@@ -1,11 +1,16 @@
 #pragma once
-#include <stdlib.h>
 #include <GL/gl.h>
+#include <stdlib.h>
 
 typedef struct {
   GLuint TextureID;
-  GLint size[2];
-  GLint Bearing[2];
+  struct {
+    GLint x;
+    GLint y;
+  } size;
+  struct {
+    GLint x;
+    GLint y;
+  } bearing;
   GLuint Advance;
 } Character_t;
-

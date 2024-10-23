@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #include <stdint.h>
+#include <math.h>
 
 #include <render_text.h>
 #include <stdio.h>
@@ -40,11 +41,11 @@ void FpsCalc() {
     fps = (double)frameCounter * frequancy / ticks;
     frameCounter = 0;
     timeTik = timeTok;
-    snprintf(buffer, sizeof(buffer), "FPS: %.2f", fps);
+    snprintf(buffer, sizeof(buffer), "FPS: %d", (int)ceil(fps));
   }
 }
 
-void RenderFps(GLuint shader_program) {
+void ShowFps(GLuint shader_program) {
   FpsCalc();
-  render_text(shader_program, buffer, 685, 435, .37, color);
+  render_text(shader_program, buffer, 700, 430, 1, color);
 }

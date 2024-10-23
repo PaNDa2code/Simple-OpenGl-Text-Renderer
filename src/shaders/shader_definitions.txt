@@ -1,0 +1,2 @@
+-DFRAGMENT_SHADER_SOURCE="\"#version 460 core\nin vec2 TexCoords;\nout vec4 FragColor;\nuniform sampler2D text;\nuniform vec3 textColor;\nvoid main()\n{\n   vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TexCoords).r);\n   FragColor = vec4(textColor, 1.0) * sampled;\n}\n\""
+-DVERTEX_SHADER_SOURCE="\"#version 460 core\nlayout (location = 0) in vec4 vertex;\nout vec2 TexCoords;\nuniform mat4 projection;\nvoid main()\n{\n   gl_Position = projection * vec4(vertex.xy, 0.0, 1.0);\n   TexCoords = vertex.zw;\n}\n\""
