@@ -18,7 +18,7 @@ for shader in "$SHADER_DIR"/*.glsl; do
   shader_source=$(awk '{printf "%s\\n", $0}' "$shader")
 
   # Generate the definition string in the format -DFRAGMENT_SHADER_SOURCE="..."
-  shader_define="-D${shader_name^^}_SHADER_SOURCE=\"\\\"$shader_source\\\"\""
+  shader_define="-D${shader_name^^}_SOURCE=\"\\\"$shader_source\\\"\""
 
   # Output the definition string (for immediate use or storing)
   echo "$shader_define" >> "$OUTPUT_FILE"

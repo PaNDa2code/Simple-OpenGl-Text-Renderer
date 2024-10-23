@@ -12,10 +12,10 @@
 #include <GLFW/glfw3.h>
 
 #include "characters.h"
+#include "fps_calc.h"
 #include "orthographic_projection.h"
 #include "render_text.h"
 #include "shader_program.h"
-#include "fps_calc.h"
 
 Character_t characters[128];
 unsigned int VAO, VBO;
@@ -28,12 +28,14 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 int main() {
   int exit_code = -1;
-  const char *font_path = "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf";
+  const char *font_path =
+      "/usr/share/fonts/truetype/firacode/FiraCode-Bold.ttf";
   FT_Library lib;
   FT_Face face;
   GLFWwindow *window;
   GLenum err;
-  GLuint shader_program;
+  GLuint text_shader_program;
+  GLuint bloom_shader_program;
 
   if (glfwInit() != GL_TRUE) {
     fprintf(stderr, "Couldn\'t initalize glfw\n");
@@ -118,23 +120,23 @@ int main() {
 
   glViewport(0, 0, WINDOW_WIDTH, WINDOW_HIGHT);
 
-  shader_program = createShaderProgram();
+  text_shader_program = TextShaderProgram();
 
-  if (!shader_program) {
+  if (!text_shader_program || !bloom_shader_program) {
     goto CLEANUP;
   }
 
-  glUseProgram(shader_program);
+  glUseProgram(text_shader_program);
 
   ortho(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HIGHT, -1.0f, 1.0f, ortho_matrix);
 
-  glUniformMatrix4fv(glGetUniformLocation(shader_program, "projection"), 1,
+  glUniformMatrix4fv(glGetUniformLocation(text_shader_program, "projection"), 1,
                      GL_FALSE, (const GLfloat *)ortho_matrix);
 
   char info_log[512];
   GLsizei info_log_size;
 
-  glGetProgramInfoLog(shader_program, sizeof(info_log), &info_log_size,
+  glGetProgramInfoLog(text_shader_program, sizeof(info_log), &info_log_size,
                       info_log);
 
   if (info_log_size > 0) {
@@ -150,11 +152,16 @@ int main() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     GLfloat color[3] = {1, 1, 1};
-    RenderFps(shader_program);
-    render_text(shader_program, "ABCDEFGHIKJLMNOPQRSTUVWXYZ", 25, 400, 1, color);
-    render_text(shader_program, "abcdefghikjlmnopqrstuvwxyz", 25, 350, 1, color);
-    render_text(shader_program, "1234567890!@#$%^&*()", 25, 300, 1, color);
-    render_text(shader_program, "I\'m BATMAN", 250, 250, 1, color);
+    RenderFps(text_shader_program);
+    render_text(text_shader_program, "ABCDEFGHIKJLMNOPQRSTUVWXYZ", 25, 400, 0.9,
+                color);
+    render_text(text_shader_program, "abcdefghikjlmnopqrstuvwxyz", 25, 350, 0.9,
+                color);
+    render_text(text_shader_program, "1234567890!@#$%^&*(){}[]+=", 25, 300, 0.9, color);
+    render_text(text_shader_program, "_-|\\\"\'?><.,", 25, 250, 0.9, color);
+
+    render_text(text_shader_program, "I\'m BATMAN", 250, 200, 0.9, color);
+
     glfwSwapBuffers(window);
     glfwPollEvents();
 
@@ -174,8 +181,8 @@ CLEANUP:
   if (VBO)
     glDeleteBuffers(1, &VBO);
 
-  if (shader_program)
-    glDeleteProgram(shader_program);
+  if (text_shader_program)
+    glDeleteProgram(text_shader_program);
 
   for (GLuint c = 0; c < 128; c++) {
     if (characters[c].TextureID) {

@@ -1,4 +1,5 @@
 #pragma once
 #include <GL/gl.h>
 
-GLuint createShaderProgram();
+GLuint TextShaderProgram();
+GLuint BloomShaderProgram();
